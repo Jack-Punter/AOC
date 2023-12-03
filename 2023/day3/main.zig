@@ -101,7 +101,7 @@ pub fn puzzle_code(allocator: mem.Allocator, input: []const u8) !i64 {
 }
 
 pub fn main() !void {
-    // const stdout = std.io.getStdOut().writer();
+    const stdout = std.io.getStdOut().writer();
 
     const test_input =
         \\467..114..
