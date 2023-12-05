@@ -10,12 +10,16 @@ pub fn puzzle_code(allocator: mem.Allocator, input: []const u8) !i64 {
 
     const stdout = std.io.getStdOut().writer();
     _ = stdout;
-    var sum: i64 = -1;
-    var sum2: i64 = -1;
-    sum += 1;
-    sum2 += 1;
+    var sum: i64 = 0;
 
     var lines_iter = mem.tokenizeScalar(u8, input, '\n');
+    // I can have a maximum of 10 matches, so I need 11 slots, 1 for the current card adn 10 for
+    // the count of the next cards.
+    var extra_cards: [11]i64 = undefined;
+    for (&extra_cards) |*ptr| {
+        ptr.* = 1;
+    }
+
     while (lines_iter.next()) |line| {
         const colon = mem.indexOfScalar(u8, line, ':').?;
         const all_numbers = line[colon + 1 ..];
@@ -26,20 +30,27 @@ pub fn puzzle_code(allocator: mem.Allocator, input: []const u8) !i64 {
         var wining_numbers_iter = mem.tokenizeScalar(u8, wining_numbers, ' ');
         var numbers_iter = mem.tokenizeScalar(u8, numbers, ' ');
 
-        var card_value: i64 = 0;
+        var matches: usize = 0;
         while (numbers_iter.next()) |number| {
             while (wining_numbers_iter.next()) |w_number| {
                 if (mem.eql(u8, number, w_number)) {
-                    if (card_value == 0) {
-                        card_value = 1;
-                    } else {
-                        card_value <<= 1;
-                    }
+                    matches += 1;
                 }
             }
             wining_numbers_iter.reset();
         }
-        sum += card_value;
+
+        // Add every card we have for this card index
+        sum += extra_cards[0];
+        // Then for all the cards we have copies of from our matches, we
+        // add that that number of cards.
+        for (1..matches + 1) |idx| {
+            extra_cards[idx] += extra_cards[0];
+        }
+        for (0..extra_cards.len - 1) |idx| {
+            extra_cards[idx] = extra_cards[idx + 1];
+        }
+        extra_cards[extra_cards.len - 1] = 1;
     }
 
     return sum;
